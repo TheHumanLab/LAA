@@ -346,73 +346,29 @@ form{margin:0}
   </form>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Generate 1-5 scales
-  document.querySelectorAll('.scale').forEach(el => {
-    const name = el.dataset.name;
-    for (let i = 1; i <= 5; i++) {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="radio" name="${name}" value="${i}" aria-label="${i}"><span>${i}</span>`;
-      el.appendChild(label);
-    }
-  });
+document.getElementById('auditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  const pages = Array.from(document.querySelectorAll('.page'));
-  let current = 0;
+  if (!validate(current)) return;
 
-  const showPage = (i) => {
-    pages.forEach((p, idx) => p.classList.toggle('active', idx === i));
-    current = i;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const form = e.target;
+  const data = new FormData(form);
 
-  const validate = (idx) => {
-    const page = pages[idx];
-    let ok = true;
-    page.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
-    page.querySelectorAll('input').forEach(i => i.style.borderColor = '');
+  try {
+    const response = await fetch(form.action, {
+      method: form.method,
+      body: data,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
 
-    if (idx === 0) {
-      page.querySelectorAll('input[required]').forEach(inp => {
-        if (!inp.value.trim()) { ok = false; inp.style.borderColor = '#7a3f23'; }
-        if (inp.type === 'email' && inp.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value)) {
-          ok = false; inp.style.borderColor = '#7a3f23';
-        }
-      });
+    if (response.ok) {
+      window.location.href = '/thank-you.html';
     } else {
-      page.querySelectorAll('.scale').forEach(scale => {
-        const name = scale.dataset.name;
-        if (!page.querySelector(`input[name="${name}"]:checked`)) {
-          ok = false;
-          scale.closest('.question').classList.add('error');
-        }
-      });
+      alert('Submission failed. Please try again.');
     }
-    if (!ok) {
-      const firstErr = page.querySelector('.error, input[style*="border-color"]');
-      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return ok;
-  };
-
-  document.querySelectorAll('.next').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (validate(current) && current < pages.length - 1) showPage(current + 1);
-    });
-  });
-
-  document.querySelectorAll('.back').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (current > 0) showPage(current - 1);
-    });
-  });
-
-  document.getElementById('auditForm').addEventListener('submit', (e) => {
-    if (!validate(current)) e.preventDefault();
-  });
+  } catch (error) {
+    alert('Submission failed. Please try again.');
+  }
 });
-</script>
-<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
-</body>
-</html>
