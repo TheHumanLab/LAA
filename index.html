@@ -207,7 +207,7 @@ form{margin:0}
 document.getElementById('auditForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  if (!validate(current)) return;
+  if (current < pages.length - 1)
 
   const form = e.target;
   const data = new FormData(form);
